@@ -98,7 +98,7 @@ class Cart
             $instance = $instance->getInstanceIdentifier();
         }
 
-        $this->instance = 'cart.'.$instance;
+        $this->instance = 'cart.' . $instance;
 
         return $this;
     }
@@ -120,12 +120,11 @@ class Cart
      * @param mixed     $name
      * @param int|float $qty
      * @param float     $price
-     * @param float     $weight
      * @param array     $options
      *
      * @return \Gloudemans\Shoppingcart\CartItem
      */
-    public function add($id, $name = null, $qty = null, $price = null, $weight = 0, array $options = [])
+    public function add($id, $name = null, $qty = null, $price = null, array $options = [])
     {
         if ($this->isMulti($id)) {
             return array_map(function ($item) {
@@ -133,7 +132,7 @@ class Cart
             }, $id);
         }
 
-        $cartItem = $this->createCartItem($id, $name, $qty, $price, $weight, $options);
+        $cartItem = $this->createCartItem($id, $name, $qty, $price, $options);
 
         return $this->addCartItem($cartItem);
     }
@@ -476,32 +475,6 @@ class Cart
     }
 
     /**
-     * Get the total weight of the items in the cart.
-     *
-     * @return float
-     */
-    public function weightFloat()
-    {
-        return $this->getContent()->reduce(function ($total, CartItem $cartItem) {
-            return $total + ($cartItem->qty * $cartItem->weight);
-        }, 0);
-    }
-
-    /**
-     * Get the total weight of the items in the cart.
-     *
-     * @param int    $decimals
-     * @param string $decimalPoint
-     * @param string $thousandSeperator
-     *
-     * @return string
-     */
-    public function weight($decimals = null, $decimalPoint = null, $thousandSeperator = null)
-    {
-        return $this->numberFormat($this->weightFloat(), $decimals, $decimalPoint, $thousandSeperator);
-    }
-
-    /**
      * Search the cart content for a cart item matching the given search closure.
      *
      * @param \Closure $search
@@ -786,12 +759,11 @@ class Cart
      * @param mixed     $name
      * @param int|float $qty
      * @param float     $price
-     * @param float     $weight
      * @param array     $options
      *
      * @return \Gloudemans\Shoppingcart\CartItem
      */
-    private function createCartItem($id, $name, $qty, $price, $weight, array $options)
+    private function createCartItem($id, $name, $qty, $price, array $options)
     {
         if ($id instanceof Buyable) {
             $cartItem = CartItem::fromBuyable($id, $qty ?: []);
@@ -801,7 +773,7 @@ class Cart
             $cartItem = CartItem::fromArray($id);
             $cartItem->setQuantity($id['qty']);
         } else {
-            $cartItem = CartItem::fromAttributes($id, $name, $price, $weight, $options);
+            $cartItem = CartItem::fromAttributes($id, $name, $price, $options);
             $cartItem->setQuantity($qty);
         }
 

@@ -45,18 +45,4 @@ trait CanBeBought
             return $this->price;
         }
     }
-
-    /**
-     * Get the weight of the Buyable item.
-     *
-     * @return float
-     */
-    public function getBuyableWeight($options = null)
-    {
-        if (property_exists($this, 'weight')) {
-            return $this->weight;
-        }
-
-        return 0;
-    }
 }

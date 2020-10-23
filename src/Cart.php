@@ -17,6 +17,7 @@ use Illuminate\Support\Collection;
 class Cart
 {
     const DEFAULT_INSTANCE = 'default';
+    const DEFAULT_TAX_RATE = 21;
 
     /**
      * Instance of the session manager.
@@ -77,7 +78,7 @@ class Cart
     {
         $this->session = $session;
         $this->events = $events;
-        $this->taxRate = config('cart.tax');
+        $this->taxRate = self::DEFAULT_TAX_RATE;
 
         $this->instance(self::DEFAULT_INSTANCE);
     }
@@ -797,48 +798,6 @@ class Cart
     }
 
     /**
-     * @param $identifier
-     *
-     * @return bool
-     */
-    private function storedCartWithIdentifierExists($identifier)
-    {
-        return $this->getConnection()->table($this->getTableName())->where('identifier', $identifier)->exists();
-    }
-
-    /**
-     * Get the database connection.
-     *
-     * @return \Illuminate\Database\Connection
-     */
-    private function getConnection()
-    {
-        return app(DatabaseManager::class)->connection($this->getConnectionName());
-    }
-
-    /**
-     * Get the database table name.
-     *
-     * @return string
-     */
-    private function getTableName()
-    {
-        return config('cart.database.table', 'shoppingcart');
-    }
-
-    /**
-     * Get the database connection name.
-     *
-     * @return string
-     */
-    private function getConnectionName()
-    {
-        $connection = config('cart.database.connection');
-
-        return is_null($connection) ? config('database.default') : $connection;
-    }
-
-    /**
      * Get the Formatted number.
      *
      * @param $value
@@ -850,18 +809,6 @@ class Cart
      */
     private function numberFormat($value, $decimals, $decimalPoint, $thousandSeperator)
     {
-        if (is_null($decimals)) {
-            $decimals = config('cart.format.decimals', 2);
-        }
-
-        if (is_null($decimalPoint)) {
-            $decimalPoint = config('cart.format.decimal_point', '.');
-        }
-
-        if (is_null($thousandSeperator)) {
-            $thousandSeperator = config('cart.format.thousand_separator', ',');
-        }
-
         return number_format($value, $decimals, $decimalPoint, $thousandSeperator);
     }
 

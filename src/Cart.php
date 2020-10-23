@@ -10,7 +10,6 @@ use Gloudemans\Shoppingcart\Exceptions\CartAlreadyStoredException;
 use Gloudemans\Shoppingcart\Exceptions\InvalidRowIDException;
 use Gloudemans\Shoppingcart\Exceptions\UnknownModelException;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Database\DatabaseManager;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Collection;
 
@@ -39,20 +38,6 @@ class Cart
      * @var string
      */
     private $instance;
-
-    /**
-     * Holds the creation date of the cart.
-     *
-     * @var mixed
-     */
-    private $createdAt;
-
-    /**
-     * Holds the update date of the cart.
-     *
-     * @var mixed
-     */
-    private $updatedAt;
 
     /**
      * Defines the discount percentage.
@@ -593,132 +578,6 @@ class Cart
     }
 
     /**
-     * Store an the current instance of the cart.
-     *
-     * @param mixed $identifier
-     *
-     * @return void
-     */
-    public function store($identifier)
-    {
-        $content = $this->getContent();
-
-        if ($identifier instanceof InstanceIdentifier) {
-            $identifier = $identifier->getInstanceIdentifier();
-        }
-
-        if ($this->storedCartWithIdentifierExists($identifier)) {
-            throw new CartAlreadyStoredException("A cart with identifier {$identifier} was already stored.");
-        }
-
-        $this->getConnection()->table($this->getTableName())->insert([
-            'identifier' => $identifier,
-            'instance'   => $this->currentInstance(),
-            'content'    => serialize($content),
-            'created_at' => $this->createdAt ?: Carbon::now(),
-            'updated_at' => Carbon::now(),
-        ]);
-
-        $this->events->dispatch('cart.stored');
-    }
-
-    /**
-     * Restore the cart with the given identifier.
-     *
-     * @param mixed $identifier
-     *
-     * @return void
-     */
-    public function restore($identifier)
-    {
-        if ($identifier instanceof InstanceIdentifier) {
-            $identifier = $identifier->getInstanceIdentifier();
-        }
-
-        if (!$this->storedCartWithIdentifierExists($identifier)) {
-            return;
-        }
-
-        $stored = $this->getConnection()->table($this->getTableName())
-            ->where('identifier', $identifier)->first();
-
-        $storedContent = unserialize(data_get($stored, 'content'));
-
-        $currentInstance = $this->currentInstance();
-
-        $this->instance(data_get($stored, 'instance'));
-
-        $content = $this->getContent();
-
-        foreach ($storedContent as $cartItem) {
-            $content->put($cartItem->rowId, $cartItem);
-        }
-
-        $this->events->dispatch('cart.restored');
-
-        $this->session->put($this->instance, $content);
-
-        $this->instance($currentInstance);
-
-        $this->createdAt = Carbon::parse(data_get($stored, 'created_at'));
-        $this->updatedAt = Carbon::parse(data_get($stored, 'updated_at'));
-
-        $this->getConnection()->table($this->getTableName())->where('identifier', $identifier)->delete();
-    }
-
-    /**
-     * Erase the cart with the given identifier.
-     *
-     * @param mixed $identifier
-     *
-     * @return void
-     */
-    public function erase($identifier)
-    {
-        if ($identifier instanceof InstanceIdentifier) {
-            $identifier = $identifier->getInstanceIdentifier();
-        }
-
-        if (!$this->storedCartWithIdentifierExists($identifier)) {
-            return;
-        }
-
-        $this->getConnection()->table($this->getTableName())->where('identifier', $identifier)->delete();
-
-        $this->events->dispatch('cart.erased');
-    }
-
-    /**
-     * Merges the contents of another cart into this cart.
-     *
-     * @param mixed $identifier   Identifier of the Cart to merge with.
-     * @param bool  $keepDiscount Keep the discount of the CartItems.
-     * @param bool  $keepTax      Keep the tax of the CartItems.
-     * @param bool  $dispatchAdd  Flag to dispatch the add events.
-     *
-     * @return bool
-     */
-    public function merge($identifier, $keepDiscount = false, $keepTax = false, $dispatchAdd = true)
-    {
-        if (!$this->storedCartWithIdentifierExists($identifier)) {
-            return false;
-        }
-
-        $stored = $this->getConnection()->table($this->getTableName())
-            ->where('identifier', $identifier)->first();
-
-        $storedContent = unserialize($stored->content);
-
-        foreach ($storedContent as $cartItem) {
-            $this->addCartItem($cartItem, $keepDiscount, $keepTax, $dispatchAdd);
-        }
-
-        $this->events->dispatch('cart.merged');
-
-        return true;
-    }
-
-    /**
      * Magic method to make accessing the total, tax and subtotal properties possible.
      *
      * @param string $attribute
@@ -810,25 +669,5 @@ class Cart
     private function numberFormat($value, $decimals, $decimalPoint, $thousandSeperator)
     {
         return number_format($value, $decimals, $decimalPoint, $thousandSeperator);
-    }
-
-    /**
-     * Get the creation date of the cart (db context).
-     *
-     * @return \Carbon\Carbon|null
-     */
-    public function createdAt()
-    {
-        return $this->createdAt;
-    }
-
-    /**
-     * Get the lats update date of the cart (db context).
-     *
-     * @return \Carbon\Carbon|null
-     */
-    public function updatedAt()
-    {
-        return $this->updatedAt;
     }
 }

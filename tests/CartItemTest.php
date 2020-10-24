@@ -23,13 +23,13 @@ class CartItemTest extends TestCase
     /** @test */
     public function it_can_be_cast_to_an_array()
     {
-        $cartItem = new CartItem(1, 'Some item', 10.00, 550, ['size' => 'XL', 'color' => 'red']);
+        $cartItem = new CartItem(1, 'Some item', 1000, ['size' => 'XL', 'color' => 'red']);
         $cartItem->setQuantity(2);
 
-        $this->assertEquals([
+        self::assertEquals([
             'id'      => 1,
             'name'    => 'Some item',
-            'price'   => 10.00,
+            'price'   => 1000,
             'rowId'   => '07d5da5550494c62daf9993cf954303f',
             'qty'     => 2,
             'options' => [
@@ -37,31 +37,33 @@ class CartItemTest extends TestCase
                 'color' => 'red',
             ],
             'tax'      => 0,
-            'subtotal' => 20.00,
-            'discount' => 0.0,
-            'weight'   => 550.0,
+            'subtotal' => 2000,
+            'discountRate' => 0,
+            'discountFixed' => 0
         ], $cartItem->toArray());
     }
 
-    /** @test */
+    /** @test
+     * @throws \JsonException
+     */
     public function it_can_be_cast_to_json()
     {
-        $cartItem = new CartItem(1, 'Some item', 10.00, 550, ['size' => 'XL', 'color' => 'red']);
+        $cartItem = new CartItem(1, 'Some item', 10.00, ['size' => 'XL', 'color' => 'red']);
         $cartItem->setQuantity(2);
 
-        $this->assertJson($cartItem->toJson());
+        self::assertJson($cartItem->toJson());
 
-        $json = '{"rowId":"07d5da5550494c62daf9993cf954303f","id":1,"name":"Some item","qty":2,"price":10,"weight":550,"options":{"size":"XL","color":"red"},"discount":0,"tax":0,"subtotal":20}';
+        $json = '{"rowId":"07d5da5550494c62daf9993cf954303f","id":1,"name":"Some item","qty":2,"price":1000,"options":{"size":"XL","color":"red"},"discountRate":0,"discountFixed":0,"tax":0,"subtotal":2000}';
 
-        $this->assertEquals($json, $cartItem->toJson());
+        self::assertEquals($json, $cartItem->toJson());
     }
 
     /** @test */
     public function it_formats_price_total_correctly()
     {
-        $cartItem = new CartItem(1, 'Some item', 10.00, 550, ['size' => 'XL', 'color' => 'red']);
+        $cartItem = new CartItem(1, 'Some item', 1000, ['size' => 'XL', 'color' => 'red']);
         $cartItem->setQuantity(2);
 
-        $this->assertSame('20.00', $cartItem->priceTotal());
+        self::assertSame('2000', $cartItem->priceTotal);
     }
 }

@@ -13,10 +13,18 @@ interface InstanceIdentifier
     public function getInstanceIdentifier($options = null);
 
     /**
-     * Get the unique identifier to load the Cart from.
+     * Get the unique identifier to load the Cart discount rate from.
      *
      * @param array|null $options
      * @return int
      */
-    public function getInstanceGlobalDiscount($options = null);
+    public function getInstanceGlobalDiscountRate($options = null);
+
+    /**
+     * Get the unique identifier to load the Cart fixed discount from.
+     *
+     * @param array|null $options
+     * @return int
+     */
+    public function getInstanceGlobalDiscountFixed($options = null);
 }

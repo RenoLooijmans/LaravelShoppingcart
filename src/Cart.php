@@ -15,7 +15,9 @@ use Illuminate\Support\Collection;
 class Cart
 {
     public const DEFAULT_INSTANCE = 0;
+
     public const DEFAULT_TAX_RATE = 21;
+
     public const DEFAULT_FORMAT_DECIMALS = 2;
     public const DEFAULT_FORMAT_DECIMAL_SEP = ',';
     public const DEFAULT_FORMAT_THOUSAND_SEP = '.';
@@ -42,18 +44,25 @@ class Cart
     private string $instance;
 
     /**
+     * Defines the fixed discount.
+     *
+     * @var int
+     */
+    private int $discountFixed;
+
+    /**
      * Defines the discount percentage.
      *
-     * @var float
+     * @var int
      */
-    private $discount = 0;
+    private int $discountRate;
 
     /**
      * Defines the tax rate.
      *
-     * @var float
+     * @var int
      */
-    private $taxRate;
+    private int $taxRate;
 
     /**
      * Cart constructor.
@@ -82,7 +91,8 @@ class Cart
         $instance = $instance ?: self::DEFAULT_INSTANCE;
 
         if ($instance instanceof InstanceIdentifier) {
-            $this->discount = $instance->getInstanceGlobalDiscount();
+            $this->discountRate = $instance->getInstanceGlobalDiscountRate();
+            $this->discountFixed= $instance->getInstanceGlobalDiscountFixed();
             $instance = $instance->getInstanceIdentifier();
         }
 
@@ -138,7 +148,8 @@ class Cart
     public function addCartItem(CartItem $item, $keepDiscount = false, $keepTax = false, $dispatchEvent = true)
     {
         if (!$keepDiscount) {
-            $item->setDiscountRate($this->discount);
+            $item->setDiscountRate($this->discountRate);
+            $item->setDiscountFixed($this->discountFixed);
         }
 
         if (!$keepTax) {
@@ -544,11 +555,31 @@ class Cart
      * @param int $discount
      * @return void
      */
-    public function setDiscount(string $rowId, int $discount)
+    public function setDiscountRate(string $rowId, int $discountRate)
     {
         $cartItem = $this->get($rowId);
 
-        $cartItem->setDiscountRate($discount);
+        $cartItem->setDiscountRate($discountRate);
+
+        $content = $this->getContent();
+
+        $content->put($cartItem->rowId, $cartItem);
+
+        $this->session->put($this->instance, $content);
+    }
+
+    /**
+     * Set the fixed discount rate for the cart item with the given rowId.
+     *
+     * @param string $rowId
+     * @param int $discountFixed
+     * @return void
+     */
+    public function setDiscountFixed(string $rowId, int $discountFixed)
+    {
+        $cartItem = $this->get($rowId);
+
+        $cartItem->setDiscountFixed($discountFixed);
 
         $content = $this->getContent();
 
@@ -565,14 +596,33 @@ class Cart
      *
      * @return void
      */
-    public function setGlobalDiscount(int $discount)
+    public function setGlobalDiscountRate(int $discountRate)
     {
-        $this->discount = $discount;
+        $this->discountRate = $discountRate;
 
         $content = $this->getContent();
         if ($content && $content->count()) {
             $content->each(function ($item, $key) {
-                $item->setDiscountRate($this->discount);
+                $item->setDiscountRate($this->discountRate);
+            });
+        }
+    }
+
+    /**
+     * Set the global fixed discount for the cart.
+     * This will set the discount for all cart items.
+     *
+     * @param int $discountFixed
+     * @return void
+     */
+    public function setGlobalDiscountFixed(int $discountFixed)
+    {
+        $this->discountFixed = $discountFixed;
+
+        $content = $this->getContent();
+        if ($content && $content->count()) {
+            $content->each(function ($item, $key) {
+                $item->setDiscountRate($this->discountFixed);
             });
         }
     }

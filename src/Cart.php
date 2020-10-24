@@ -92,7 +92,7 @@ class Cart
 
         if ($instance instanceof InstanceIdentifier) {
             $this->discountRate = $instance->getInstanceGlobalDiscountRate();
-            $this->discountFixed= $instance->getInstanceGlobalDiscountFixed();
+            $this->discountFixed = $instance->getInstanceGlobalDiscountFixed();
             $instance = $instance->getInstanceIdentifier();
         }
 

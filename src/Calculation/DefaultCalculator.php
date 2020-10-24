@@ -7,6 +7,11 @@ use Gloudemans\Shoppingcart\Contracts\Calculator;
 
 class DefaultCalculator implements Calculator
 {
+    /**
+     * @param string $attribute
+     * @param CartItem $cartItem
+     * @return float|int|mixed
+     */
     public static function getAttribute(string $attribute, CartItem $cartItem)
     {
         switch ($attribute) {
@@ -29,7 +34,7 @@ class DefaultCalculator implements Calculator
             case 'total':
                 return round($cartItem->subtotal + $cartItem->taxTotal, 0);
             default:
-                return;
+                return 0;
         }
     }
 }

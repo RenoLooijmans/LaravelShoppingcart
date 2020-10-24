@@ -4,6 +4,7 @@ namespace Gloudemans\Tests\Shoppingcart;
 
 use Gloudemans\Shoppingcart\CartItem;
 use Gloudemans\Shoppingcart\ShoppingcartServiceProvider;
+use Illuminate\Foundation\Application;
 use Orchestra\Testbench\TestCase;
 
 class CartItemTest extends TestCase
@@ -11,7 +12,7 @@ class CartItemTest extends TestCase
     /**
      * Set the package service provider.
      *
-     * @param \Illuminate\Foundation\Application $app
+     * @param Application $app
      *
      * @return array
      */

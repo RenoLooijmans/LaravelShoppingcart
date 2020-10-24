@@ -7,31 +7,38 @@ use Gloudemans\Shoppingcart\Contracts\InstanceIdentifier;
 class Identifiable implements InstanceIdentifier
 {
     /**
-     * @var int|string
+     * @var int
      */
-    private $identifier;
+    private int $identifier;
 
     /**
      * @var int
      */
-    private $discountRate;
+    private int $discountRate;
+
+    /**
+     * @var int
+     */
+    private int $discountFixed;
 
     /**
      * BuyableProduct constructor.
      *
-     * @param int|string $id
-     * @param string     $name
-     * @param float      $price
+     * @param int $identifier
+     * @param int $discountRate
+     * @param int $discountFixed
      */
-    public function __construct($identifier = 'identifier', $discountRate = 0)
+    public function __construct($identifier = 100, $discountRate = 0, $discountFixed = 0)
     {
         $this->identifier = $identifier;
         $this->discountRate = $discountRate;
+        $this->discountFixed = $discountFixed;
     }
 
     /**
      * Get the unique identifier to load the Cart from.
      *
+     * @param array|null $options
      * @return int|string
      */
     public function getInstanceIdentifier($options = null)
@@ -42,10 +49,20 @@ class Identifiable implements InstanceIdentifier
     /**
      * Get the unique identifier to load the Cart from.
      *
+     * @param array|null $options
      * @return int|string
      */
-    public function getInstanceGlobalDiscount($options = null)
+    public function getInstanceGlobalDiscountRate($options = null)
     {
         return $this->discountRate;
+    }
+
+    /**
+     * @param array|null $options
+     * @return int
+     */
+    public function getInstanceGlobalDiscountFixed($options = null)
+    {
+        return $this->discountFixed;
     }
 }

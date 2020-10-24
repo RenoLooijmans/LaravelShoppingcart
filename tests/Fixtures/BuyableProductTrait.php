@@ -2,44 +2,39 @@
 
 namespace Gloudemans\Tests\Shoppingcart\Fixtures;
 
+use Gloudemans\Shoppingcart\CanBeBought;
 use Gloudemans\Shoppingcart\Contracts\Buyable;
 
 class BuyableProductTrait implements Buyable
 {
-    use \Gloudemans\Shoppingcart\CanBeBought;
+    use CanBeBought;
 
     /**
-     * @var int|string
+     * @var int
      */
-    private $id;
+    private int $id;
 
     /**
      * @var string
      */
-    private $name;
+    private string $name;
 
     /**
-     * @var float
+     * @var int
      */
-    private $price;
-
-    /**
-     * @var float
-     */
-    private $weight;
+    private int $price;
 
     /**
      * BuyableProduct constructor.
      *
-     * @param int|string $id
-     * @param string     $name
-     * @param float      $price
+     * @param int $id
+     * @param string $name
+     * @param int $price
      */
-    public function __construct($id = 1, $name = 'Item name', $price = 10.00, $weight = 0)
+    public function __construct($id = 1, $name = 'Item name', $price = 1000)
     {
         $this->id = $id;
         $this->name = $name;
         $this->price = $price;
-        $this->weight = $weight;
     }
 }

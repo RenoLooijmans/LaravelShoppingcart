@@ -932,6 +932,52 @@ class CartTest extends TestCase
     }
 
     /** @test */
+    public function can_set_cart_item_discount_percentage_fixed_values()
+    {
+        $cart = $this->getCart();
+        $cart->add(new BuyableProduct(1, 'First item', 2000), 2);
+        $cartItem = $cart->get('027c91341fd5cf4d2579b49c4b6a90da');
+        $cart->setDiscountRate('027c91341fd5cf4d2579b49c4b6a90da', 50);
+        $cart->setDiscountFixed('027c91341fd5cf4d2579b49c4b6a90da', 500);
+
+        self::assertEquals(50, $cartItem->discountRate);
+        self::assertEquals(500, $cartItem->discountFixed);
+
+        self::assertEquals(2000, $cartItem->price);
+        self::assertEquals(1000, $cartItem->discountPerc);
+        self::assertEquals(2500, $cartItem->discountTotal);
+        self::assertEquals(750, $cartItem->priceTarget);
+        self::assertEquals(1185, $cartItem->subtotal);
+        self::assertEquals(158, $cartItem->tax);
+        self::assertEquals(315, $cartItem->taxTotal);
+        self::assertEquals(592, $cartItem->priceSubtotal);
+        self::assertEquals(1500, $cartItem->total);
+    }
+
+    /** @test */
+    public function can_set_cart_item_discount_percentage_fixed_too_much_discount()
+    {
+        $cart = $this->getCart();
+        $cart->add(new BuyableProduct(1, 'First item', 2000), 2);
+        $cartItem = $cart->get('027c91341fd5cf4d2579b49c4b6a90da');
+        $cart->setDiscountRate('027c91341fd5cf4d2579b49c4b6a90da', 50);
+        $cart->setDiscountFixed('027c91341fd5cf4d2579b49c4b6a90da', 5000);
+
+        self::assertEquals(50, $cartItem->discountRate);
+        self::assertEquals(5000, $cartItem->discountFixed);
+
+        self::assertEquals(2000, $cartItem->price);
+        self::assertEquals(1000, $cartItem->discountPerc);
+        self::assertEquals(4000, $cartItem->discountTotal);
+        self::assertEquals(0, $cartItem->priceTarget);
+        self::assertEquals(0, $cartItem->subtotal);
+        self::assertEquals(0, $cartItem->tax);
+        self::assertEquals(0, $cartItem->taxTotal);
+        self::assertEquals(0, $cartItem->priceSubtotal);
+        self::assertEquals(0, $cartItem->total);
+    }
+
+    /** @test */
     public function cart_can_create_items_from_models_using_the_canbebought_trait()
     {
         $cart = $this->getCartDiscount(50);

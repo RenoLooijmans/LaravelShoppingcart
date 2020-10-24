@@ -365,7 +365,7 @@ class CartItem implements Arrayable, Jsonable
             throw new InvalidCalculatorException('The configured Calculator seems to be invalid. Calculators have to implement the Calculator Contract.');
         }
 
-        return call_user_func($class->getName().'::getAttribute', $attribute, $this);
+        return call_user_func($class->getName() . '::getAttribute', $attribute, $this);
     }
 
     /**

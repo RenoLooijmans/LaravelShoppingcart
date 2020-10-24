@@ -24,7 +24,7 @@ class DefaultCalculator implements Calculator
             case 'priceTax':
                 return round($cartItem->priceTarget + $cartItem->tax, 0);
             case 'discountTotal':
-                return round($cartItem->discount * $cartItem->qty, 0);
+                return min($cartItem->price, round($cartItem->discount * $cartItem->qty + $cartItem->discountFixed, 0));
             case 'priceTotal':
                 return round($cartItem->price * $cartItem->qty, 0);
             case 'subtotal':

@@ -74,6 +74,13 @@ class CartItem implements Arrayable, Jsonable
     private ?string $associatedModel = null;
 
     /**
+     * The discount fixed rate for the cart item.
+     *
+     * @var int
+     */
+    private int $discountFixed;
+
+    /**
      * The discount rate for the cart item.
      *
      * @var int
@@ -326,6 +333,20 @@ class CartItem implements Arrayable, Jsonable
     }
 
     /**
+     * Set the fixed discount rate.
+     *
+     * @param int $discountFixed
+     *
+     * @return CartItem
+     */
+    public function setDiscountFixed(int $discountFixed)
+    {
+        $this->discountFixed = $discountFixed;
+
+        return $this;
+    }
+
+    /**
      * Set the discount rate.
      *
      * @param int $discountRate
@@ -489,7 +510,18 @@ class CartItem implements Arrayable, Jsonable
      * Getter for the raw internal discount rate.
      * Should be used in calculators.
      *
-     * @return float
+     * @return int
+     */
+    public function getDiscountFixed()
+    {
+        return $this->discountFixed;
+    }
+
+    /**
+     * Getter for the raw internal discount rate.
+     * Should be used in calculators.
+     *
+     * @return int
      */
     public function getDiscountRate()
     {

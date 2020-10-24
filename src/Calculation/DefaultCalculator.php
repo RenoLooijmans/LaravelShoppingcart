@@ -16,7 +16,9 @@ class DefaultCalculator implements Calculator
     {
         switch ($attribute) {
             case 'discount':
-                return $cartItem->price * ($cartItem->getDiscountRate() / 100);
+                return round($cartItem->price * ($cartItem->getDiscountRate() / 100));
+            case 'discountFixed':
+                return min(round($cartItem->price), $cartItem->getDiscountFixed());
             case 'tax':
                 return round($cartItem->priceTarget * ($cartItem->taxRate / 100), 0);
             case 'priceTax':

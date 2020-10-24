@@ -9,14 +9,11 @@ use Gloudemans\Shoppingcart\Exceptions\UnknownModelException;
 use Gloudemans\Shoppingcart\ShoppingcartServiceProvider;
 use Gloudemans\Tests\Shoppingcart\Fixtures\BuyableProduct;
 use Gloudemans\Tests\Shoppingcart\Fixtures\BuyableProductTrait;
-use Gloudemans\Tests\Shoppingcart\Fixtures\Identifiable;
 use Gloudemans\Tests\Shoppingcart\Fixtures\ProductModel;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Application;
-use Illuminate\Session\SessionManager;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Event;
-use Mockery;
+use InvalidArgumentException;
 use Orchestra\Testbench\TestCase;
 
 class CartTest extends TestCase
@@ -42,7 +39,7 @@ class CartTest extends TestCase
      *
      * @return void
      */
-    protected function getEnvironmentSetUp(Application $app)
+    protected function getEnvironmentSetUp($app)
     {
         $app['config']->set('session.driver', 'array');
     }
@@ -183,7 +180,7 @@ class CartTest extends TestCase
 
         $options = ['size' => 'XL', 'color' => 'red'];
 
-        $cart->add(new BuyableProduct(), 1, $options);
+        $cart->add(new BuyableProduct(),1, $options);
 
         $cartItem = $cart->get('07d5da5550494c62daf9993cf954303f');
 
@@ -199,7 +196,7 @@ class CartTest extends TestCase
      */
     public function it_will_validate_the_identifier()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Please supply a valid identifier.');
 
         $cart = $this->getCart();
@@ -212,7 +209,7 @@ class CartTest extends TestCase
      */
     public function it_will_validate_the_name()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Please supply a valid name.');
 
         $cart = $this->getCart();
@@ -225,12 +222,12 @@ class CartTest extends TestCase
      */
     public function it_will_validate_the_quantity()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Please supply a valid quantity.');
 
         $cart = $this->getCart();
 
-        $cart->add(1, 'Some title', 'invalid', 10.00);
+        $cart->add(1, 'Some title', 'invalid', 1000);
     }
 
     /**
@@ -238,7 +235,7 @@ class CartTest extends TestCase
      */
     public function it_will_validate_the_price()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Please supply a valid price.');
 
         $cart = $this->getCart();
@@ -490,7 +487,7 @@ class CartTest extends TestCase
                 'qty'      => 1,
                 'price'    => 1000,
                 'tax'      => 210,
-                'subtotal' => 1000,
+                'subtotal' => 790,
                 'options'  => [],
                 'discountRate' => 0,
                 'discountFixed' => 0
@@ -502,7 +499,7 @@ class CartTest extends TestCase
                 'qty'      => 1,
                 'price'    => 1000,
                 'tax'      => 210,
-                'subtotal' => 1000,
+                'subtotal' => 790,
                 'options'  => [],
                 'discountRate' => 0,
                 'discountFixed' => 0
@@ -533,7 +530,7 @@ class CartTest extends TestCase
         $cart->add(new BuyableProduct(2, 'Second item', 2500), 2);
 
         $this->assertItemsInCart(3, $cart);
-        self::assertEquals(6000, $cart->subtotal());
+        self::assertEquals(6000, $cart->total());
     }
 
     /** @test */
@@ -545,7 +542,7 @@ class CartTest extends TestCase
         $cart->add(new BuyableProduct(2, 'Second item', 250000), 2);
 
         $this->assertItemsInCart(3, $cart);
-        self::assertEquals('6.000,00', $cart->subtotalFormat(2, ',', '.'));
+        self::assertEquals('6.000,00', $cart->totalFormat(2, ',', '.'));
     }
 
     /** @test */
@@ -665,7 +662,7 @@ class CartTest extends TestCase
 
         $cartItem = $cart->get('027c91341fd5cf4d2579b49c4b6a90da');
 
-        self::assertEquals(2997, $cartItem->subtotal);
+        self::assertEquals(2368, $cartItem->subtotal);
     }
 
     /** @test */
@@ -677,7 +674,7 @@ class CartTest extends TestCase
 
         $cartItem = $cart->get('027c91341fd5cf4d2579b49c4b6a90da');
 
-        self::assertEquals('1.500,00', $cartItem->subtotalFormat(2, ',', '.'));
+        self::assertEquals('1.185,00', $cartItem->subtotalFormat(2, ',', '.'));
     }
 
     /** @test */
@@ -762,7 +759,7 @@ class CartTest extends TestCase
         $cart->add(new BuyableProduct(1, 'Some title', 1000), 1);
         $cart->add(new BuyableProduct(2, 'Some title', 2000), 2);
 
-        self::assertEquals(5000, $cart->subtotal);
+        self::assertEquals(3950, $cart->subtotal());
     }
 
     /** @test */
@@ -773,7 +770,7 @@ class CartTest extends TestCase
         $cart->add(new BuyableProduct(1, 'Some title', 100000), 1);
         $cart->add(new BuyableProduct(2, 'Some title', 200000), 2);
 
-        self::assertEquals('5.000,00', $cart->subtotalFormat(2, ',', '.'));
+        self::assertEquals('3.950,00', $cart->subtotalFormat(2, ',', '.'));
     }
 
     /** @test */
@@ -788,14 +785,14 @@ class CartTest extends TestCase
         $cart->setTax('027c91341fd5cf4d2579b49c4b6a90da', 19);
 
         self::assertEquals(1000, $cartItem->price);
-        self::assertEquals(50, $cartItem->discountRate);
+        self::assertEquals(500, $cartItem->discountPerc);
         self::assertEquals(1000, $cartItem->discountTotal);
         self::assertEquals(500, $cartItem->priceTarget);
-        self::assertEquals(1000, $cartItem->subtotal);
+        self::assertEquals(810, $cartItem->subtotal);
         self::assertEquals(95, $cartItem->tax);
         self::assertEquals(190, $cartItem->taxTotal);
-        self::assertEquals(595, $cartItem->priceTax);
-        self::assertEquals(1190, $cartItem->total);
+        self::assertEquals(405, $cartItem->priceSubtotal);
+        self::assertEquals(1000, $cartItem->total);
     }
 
     /** @test */
@@ -811,14 +808,14 @@ class CartTest extends TestCase
         $cart->setTax('027c91341fd5cf4d2579b49c4b6a90da', 19);
 
         self::assertEquals(1000, $cartItem->price);
-        self::assertEquals(500, $cartItem->discountRate);
+        self::assertEquals(500, $cartItem->discountPerc);
         self::assertEquals(1000, $cartItem->discountTotal);
         self::assertEquals(500, $cartItem->priceTarget);
-        self::assertEquals(1000, $cartItem->subtotal);
+        self::assertEquals(810, $cartItem->subtotal);
         self::assertEquals(95, $cartItem->tax);
         self::assertEquals(190, $cartItem->taxTotal);
-        self::assertEquals(595, $cartItem->priceTax);
-        self::assertEquals(1190, $cartItem->total);
+        self::assertEquals(405, $cartItem->priceSubtotal);
+        self::assertEquals(1000, $cartItem->total);
     }
 
     /** @test */
@@ -834,14 +831,14 @@ class CartTest extends TestCase
         $cart->setTax('027c91341fd5cf4d2579b49c4b6a90da', 19);
 
         self::assertEquals(1000, $cartItem->price);
-        self::assertEquals(500, $cartItem->discount);
+        self::assertEquals(500, $cartItem->discountPerc);
         self::assertEquals(1000, $cartItem->discountTotal);
         self::assertEquals(500, $cartItem->priceTarget);
-        self::assertEquals(1000, $cartItem->subtotal);
+        self::assertEquals(810, $cartItem->subtotal);
         self::assertEquals(95, $cartItem->tax);
         self::assertEquals(190, $cartItem->taxTotal);
-        self::assertEquals(595, $cartItem->priceTax);
-        self::assertEquals(1190, $cartItem->total);
+        self::assertEquals(405, $cartItem->priceSubtotal);
+        self::assertEquals(1000, $cartItem->total);
     }
 
     /** @test */
@@ -893,16 +890,16 @@ class CartTest extends TestCase
         $cart->get('027c91341fd5cf4d2579b49c4b6a90da');
         $cart->setTax('027c91341fd5cf4d2579b49c4b6a90da', 19);
 
-        self::assertEquals('10.00', $cart->initialFormat());
-        self::assertEquals(1000, $cart->initial);
-        self::assertEquals('5.00', $cart->discountFormat());
-        self::assertEquals(500, $cart->discount);
-        self::assertEquals('5.00', $cart->subtotalFormat());
-        self::assertEquals(500, $cart->subtotal);
-        self::assertEquals('0.95', $cart->taxFormat());
-        self::assertEquals(95, $cart->tax);
-        self::assertEquals('5.95', $cart->totalFormat());
-        self::assertEquals(595, $cart->total);
+        self::assertEquals('10,00', $cart->initialFormat());
+        self::assertEquals(1000, $cart->initial());
+        self::assertEquals('5,00', $cart->discountFormat());
+        self::assertEquals(500, $cart->discount());
+        self::assertEquals('4,05', $cart->subtotalFormat());
+        self::assertEquals(405, $cart->subtotal());
+        self::assertEquals('0,95', $cart->taxFormat());
+        self::assertEquals(95, $cart->tax());
+        self::assertEquals('5,00', $cart->totalFormat());
+        self::assertEquals(500, $cart->total());
     }
 
     /** @test */
@@ -946,32 +943,32 @@ class CartTest extends TestCase
         $cart->setTax('027c91341fd5cf4d2579b49c4b6a90da', 19);
 
         self::assertEquals(1000, $cartItem->price);
-        self::assertEquals(500, $cartItem->discountRate);
+        self::assertEquals(500, $cartItem->discountPerc);
         self::assertEquals(1000, $cartItem->discountTotal);
         self::assertEquals(500, $cartItem->priceTarget);
-        self::assertEquals(1000, $cartItem->subtotal);
+        self::assertEquals(810, $cartItem->subtotal);
         self::assertEquals(95, $cartItem->tax);
         self::assertEquals(190, $cartItem->taxTotal);
-        self::assertEquals(595, $cartItem->priceTax);
-        self::assertEquals(1190, $cartItem->total);
+        self::assertEquals(405, $cartItem->priceSubtotal);
+        self::assertEquals(1000, $cartItem->total);
     }
 
     /** @test */
     public function it_use_correctly_rounded_values_for_totals_and_cart_summary()
     {
-        $cart = $this->getCartDiscount(6);
+        $cart = $this->getCartDiscount(0);
 
-        $cartItem = $cart->add(new BuyableProduct(1, 'First item', 18929), 1000);
+        $cart->add(new BuyableProduct(1, 'First item', 18929), 1000);
         $cart->add(new BuyableProduct(2, 'Second item', 441632), 5);
         $cart->add(new BuyableProduct(3, 'Third item', 37995), 25);
 
-        $cart->setGlobalTax(22);
+        $cart->setGlobalTax(21);
 
         // check total
-        self::assertEquals(22087035, $cart->total);
+        self::assertEquals(22087035, $cart->total());
 
         // check that the sum of cart subvalues matches the total (in order to avoid cart summary to looks wrong)
-        self::assertEquals($cart->total, $cart->subtotal + $cart->tax);
+        self::assertEquals($cart->total(), $cart->subtotal() + $cart->tax());
     }
 
     /**

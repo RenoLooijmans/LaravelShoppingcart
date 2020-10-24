@@ -9,17 +9,17 @@ class BuyableProduct implements Buyable
     /**
      * @var int
      */
-    private int $id;
+    private $id;
 
     /**
      * @var string
      */
-    private string $name;
+    private $name;
 
     /**
      * @var int
      */
-    private int $price;
+    private $price;
 
     /**
      * BuyableProduct constructor.

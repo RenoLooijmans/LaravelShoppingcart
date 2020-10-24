@@ -49,7 +49,7 @@ class CartItemTest extends TestCase
      */
     public function it_can_be_cast_to_json()
     {
-        $cartItem = new CartItem(1, 'Some item', 10.00, ['size' => 'XL', 'color' => 'red']);
+        $cartItem = new CartItem(1, 'Some item', 1000, ['size' => 'XL', 'color' => 'red']);
         $cartItem->setQuantity(2);
 
         self::assertJson($cartItem->toJson());
@@ -65,6 +65,6 @@ class CartItemTest extends TestCase
         $cartItem = new CartItem(1, 'Some item', 1000, ['size' => 'XL', 'color' => 'red']);
         $cartItem->setQuantity(2);
 
-        self::assertSame('2000', $cartItem->priceTotal);
+        self::assertSame('20,00', $cartItem->priceTotalFormat());
     }
 }

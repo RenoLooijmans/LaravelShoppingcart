@@ -2,7 +2,6 @@
 
 namespace Gloudemans\Shoppingcart;
 
-use Carbon\Carbon;
 use Closure;
 use Gloudemans\Shoppingcart\Contracts\Buyable;
 use Gloudemans\Shoppingcart\Contracts\InstanceIdentifier;
@@ -27,42 +26,42 @@ class Cart
      *
      * @var SessionManager
      */
-    private SessionManager $session;
+    private $session;
 
     /**
      * Instance of the event dispatcher.
      *
      * @var Dispatcher
      */
-    private Dispatcher $events;
+    private $events;
 
     /**
      * Holds the current cart instance.
      *
      * @var string
      */
-    private string $instance;
+    private $instance;
 
     /**
      * Defines the fixed discount.
      *
      * @var int
      */
-    private int $discountFixed;
+    private $discountFixed = 0;
 
     /**
      * Defines the discount percentage.
      *
      * @var int
      */
-    private int $discountRate;
+    private $discountRate = 0;
 
     /**
      * Defines the tax rate.
      *
-     * @var int
+     * @var int|null
      */
-    private int $taxRate;
+    private $taxRate;
 
     /**
      * Cart constructor.
@@ -542,7 +541,7 @@ class Cart
 
         $content = $this->getContent();
         if ($content && $content->count()) {
-            $content->each(function ($item, $key) {
+            $content->each(function ($item) {
                 $item->setTaxRate($this->taxRate);
             });
         }
@@ -552,7 +551,7 @@ class Cart
      * Set the discount rate for the cart item with the given rowId.
      *
      * @param string $rowId
-     * @param int $discount
+     * @param int $discountRate
      * @return void
      */
     public function setDiscountRate(string $rowId, int $discountRate)
@@ -602,7 +601,7 @@ class Cart
 
         $content = $this->getContent();
         if ($content && $content->count()) {
-            $content->each(function ($item, $key) {
+            $content->each(function ($item) {
                 $item->setDiscountRate($this->discountRate);
             });
         }
@@ -621,7 +620,7 @@ class Cart
 
         $content = $this->getContent();
         if ($content && $content->count()) {
-            $content->each(function ($item, $key) {
+            $content->each(function ($item) {
                 $item->setDiscountRate($this->discountFixed);
             });
         }
@@ -667,13 +666,13 @@ class Cart
      *
      * @param mixed $id
      * @param mixed $name
-     * @param int $qty
-     * @param int $price
+     * @param int|array|null $qty
+     * @param int|null $price
      * @param array $options
      *
      * @return CartItem
      */
-    private function createCartItem($id, $name, int $qty, int $price, array $options)
+    private function createCartItem($id, $name = null, $qty = null, $price = null, array $options = [])
     {
         if ($id instanceof Buyable) {
             $cartItem = CartItem::fromBuyable($id, $qty ?: []);

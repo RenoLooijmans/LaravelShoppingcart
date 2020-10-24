@@ -9,6 +9,7 @@ use Gloudemans\Shoppingcart\Exceptions\InvalidCalculatorException;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Support\Arr;
+use InvalidArgumentException;
 use ReflectionClass;
 
 class CartItem implements Arrayable, Jsonable
@@ -22,35 +23,35 @@ class CartItem implements Arrayable, Jsonable
      *
      * @var string
      */
-    public string $rowId;
+    public $rowId;
 
     /**
      * The ID of the cart item.
      *
      * @var int;
      */
-    public int $id;
+    public $id;
 
     /**
      * The quantity for this cart item.
      *
      * @var int
      */
-    public int $qty;
+    public $qty;
 
     /**
      * The name of the cart item.
      *
      * @var string
      */
-    public string $name;
+    public $name;
 
     /**
      * The price without TAX of the cart item.
      *
      * @var int
      */
-    public int $price;
+    public $price;
 
     /**
      * The options for this cart item.
@@ -64,49 +65,49 @@ class CartItem implements Arrayable, Jsonable
      *
      * @var int;
      */
-    public int $taxRate;
+    public $taxRate;
 
     /**
      * The FQN of the associated model.
      *
      * @var string|null
      */
-    private ?string $associatedModel = null;
+    private $associatedModel = null;
 
     /**
      * The discount fixed rate for the cart item.
      *
      * @var int
      */
-    private int $discountFixed;
+    private $discountFixed;
 
     /**
      * The discount rate for the cart item.
      *
      * @var int
      */
-    private int $discountRate;
+    private $discountRate;
 
     /**
      * CartItem constructor.
      *
-     * @param int $id
-     * @param string $name
-     * @param int $price
+     * @param int|null $id
+     * @param string|null $name
+     * @param int|null $price
      * @param array $options
      */
-    public function __construct(int $id, string $name, int $price, array $options = [])
+    public function __construct(?int $id, ?string $name, $price, array $options = [])
     {
-        if (empty($id)) {
-            throw new \InvalidArgumentException('Please supply a valid identifier.');
+        if ($id === null) {
+            throw new InvalidArgumentException('Please supply a valid identifier.');
         }
 
         if (empty($name)) {
-            throw new \InvalidArgumentException('Please supply a valid name.');
+            throw new InvalidArgumentException('Please supply a valid name.');
         }
 
-        if (strlen($price) < 0) {
-            throw new \InvalidArgumentException('Please supply a valid price.');
+        if (!is_numeric($price) || strlen($price) < 0) {
+            throw new InvalidArgumentException('Please supply a valid price.');
         }
 
         $this->id = $id;
@@ -153,9 +154,9 @@ class CartItem implements Arrayable, Jsonable
      *
      * @return string
      */
-    public function priceTaxFormat($decimals = null, $decimalPoint = null, $thousandSeparator = null)
+    public function priceWithoutTaxFormat($decimals = null, $decimalPoint = null, $thousandSeparator = null)
     {
-        return $this->numberFormat($this->priceTax / 100, $decimals, $decimalPoint, $thousandSeparator);
+        return $this->numberFormat($this->priceWithoutTax / 100, $decimals, $decimalPoint, $thousandSeparator);
     }
 
     /**
@@ -227,7 +228,7 @@ class CartItem implements Arrayable, Jsonable
      */
     public function discountFormat($decimals = null, $decimalPoint = null, $thousandSeparator = null)
     {
-        return $this->numberFormat($this->discount / 100, $decimals, $decimalPoint, $thousandSeparator);
+        return $this->numberFormat($this->discountPerc / 100, $decimals, $decimalPoint, $thousandSeparator);
     }
 
     /**
@@ -261,12 +262,12 @@ class CartItem implements Arrayable, Jsonable
     /**
      * Set the quantity for this cart item.
      *
-     * @param int $qty
+     * @param int|null $qty
      */
-    public function setQuantity(int $qty)
+    public function setQuantity($qty)
     {
-        if (empty($qty) || !is_numeric($qty)) {
-            throw new \InvalidArgumentException('Please supply a valid quantity.');
+        if ($qty === null || !is_numeric($qty)) {
+            throw new InvalidArgumentException('Please supply a valid quantity.');
         }
 
         $this->qty = $qty;
@@ -419,14 +420,14 @@ class CartItem implements Arrayable, Jsonable
     /**
      * Create a new instance from the given attributes.
      *
-     * @param int $id
-     * @param string $name
-     * @param int $price
+     * @param int|null $id
+     * @param mixed $name
+     * @param int|null $price
      * @param array $options
      *
      * @return CartItem
      */
-    public static function fromAttributes(int $id, string $name, int $price, array $options = [])
+    public static function fromAttributes(?int $id, $name, $price, array $options = [])
     {
         return new self($id, $name, $price, $options);
     }
@@ -460,8 +461,8 @@ class CartItem implements Arrayable, Jsonable
             'qty'      => $this->qty,
             'price'    => $this->price,
             'options'  => $this->options->toArray(),
-            'discountRate' => $this->discountRate,
-            'discountFixed' => $this->discountFixed,
+            'discountRate' => $this->discountPerc,
+            'discountFixed' => $this->discountFixedPrice,
             'tax'      => $this->tax,
             'subtotal' => $this->subtotal,
         ];
